@@ -2,7 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch: # Remove 'branches' - this is incorrect syntax
 
 jobs:
@@ -74,11 +74,11 @@ jobs:
             ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
             
             # Navigate to app directory
-            cd /var/www/express-app
+            cd /server
 
             # Fix ownership first (important!)
             echo "Fixing directory ownership..."
-            sudo chown -R $USER:$USER /var/www/express-app
+            sudo chown -R $USER:$USER /server
             
             
             # Backup current version
@@ -92,11 +92,11 @@ jobs:
             
             # Extract new version (this will overwrite existing files)
             echo "Extracting new deployment package..."
-            tar --overwrite -xzf /tmp/deploy.tar.gz -C /var/www/express-app
+            tar --overwrite -xzf /tmp/deploy.tar.gz -C /server
             rm /tmp/deploy.tar.gz
 
             # Fix ownership after extraction
-            sudo chown -R $USER:$USER /var/www/express-app
+            sudo chown -R $USER:$USER /server
             
             
             # Install production dependencies on the server
@@ -171,17 +171,17 @@ jobs:
           ssh -i private_key.pem -o StrictHostKeyChecking=no \
             ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
             
-            cd /var/www/express-app
+            cd /server
 
             # Fix ownership first (important!)
-            sudo chown -R $USER:$USER /var/www/express-app
+            sudo chown -R $USER:$USER /server
             
             # Find latest backup
             latest_backup=$(ls -t backups/backup_*.tar.gz 2>/dev/null | head -1)
             
             if [ -n "$latest_backup" ]; then
               echo "Found backup: $latest_backup"
-              tar -xzf "$latest_backup" -C /var/www/express-app
+              tar -xzf "$latest_backup" -C /server
               npm ci
               pm2 reload ecosystem.config.cjs
               echo "✅ Rolled back to previous version"
