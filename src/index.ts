@@ -14,6 +14,17 @@ app.get("/", (req: Request, res: Response) => {
   return res.send("It's working 🙌");
 });
 
+app.get("/joke", (req: Request, res: Response) => {
+  res.json({ joke: "Why don't skeletons fight each other? They don't have the guts!" });
+});
+
+app.get("/fact", (req: Request, res: Response) => {
+  res.json({ fact: "Bananas are berries, but strawberries aren't!" });
+});
+
+app.get("/quote", (req: Request, res: Response) => {
+  res.json({ quote: "I'm not arguing, I'm just explaining why I'm right." });
+});
 
 
 
