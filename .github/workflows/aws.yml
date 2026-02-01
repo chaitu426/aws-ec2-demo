@@ -31,7 +31,7 @@ jobs:
           mkdir -p deploy
           cp -r dist deploy/
           cp -r src deploy/
-          cp package*.json deploy/
+          cp package.json package-lock.json deploy/
           cp ecosystem.config.cjs deploy/
           # Copy .env.example if exists
           [ -f .env.example ] && cp .env.example deploy/ || echo "No .env.example found"
@@ -74,11 +74,11 @@ jobs:
             ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
             
             # Navigate to app directory
-            cd /server
+            cd /home/ubuntu/server
 
             # Fix ownership first (important!)
             echo "Fixing directory ownership..."
-            sudo chown -R $USER:$USER /server
+            sudo chown -R $USER:$USER /home/ubuntu/server
             
             
             # Backup current version
@@ -92,11 +92,11 @@ jobs:
             
             # Extract new version (this will overwrite existing files)
             echo "Extracting new deployment package..."
-            tar --overwrite -xzf /tmp/deploy.tar.gz -C /server
+            tar --overwrite -xzf /tmp/deploy.tar.gz -C /home/ubuntu/server
             rm /tmp/deploy.tar.gz
 
             # Fix ownership after extraction
-            sudo chown -R $USER:$USER /server
+            sudo chown -R $USER:$USER /home/ubuntu/server
             
             
             # Install production dependencies on the server
@@ -171,17 +171,17 @@ jobs:
           ssh -i private_key.pem -o StrictHostKeyChecking=no \
             ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
             
-            cd /server
+            cd /home/ubuntu/server
 
             # Fix ownership first (important!)
-            sudo chown -R $USER:$USER /server
+            sudo chown -R $USER:$USER /home/ubuntu/server
             
             # Find latest backup
             latest_backup=$(ls -t backups/backup_*.tar.gz 2>/dev/null | head -1)
             
             if [ -n "$latest_backup" ]; then
               echo "Found backup: $latest_backup"
-              tar -xzf "$latest_backup" -C /server
+              tar -xzf "$latest_backup" -C /home/ubuntu/server
               npm ci
               pm2 reload ecosystem.config.cjs
               echo "✅ Rolled back to previous version"
